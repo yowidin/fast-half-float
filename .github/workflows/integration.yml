@@ -1,0 +1,35 @@
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  build:
+    name: integration-tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        os:
+          - windows-2022
+          - macos-13
+          - ubuntu-22.04
+        build_type:
+          - Debug
+          - Release
+        build_shared:
+          - ON
+          - OFF
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v1
+
+      - name: Add Ninja
+        uses: seanmiddleditch/gha-setup-ninja@master
+
+      - name: Build native
+        run: |
+          cmake -Hintegration -B_build -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DBUILD_SHARED_LIBS="${{ matrix.build_shared }}" -DBUILD_TESTS=OFF
+          cmake --build _build
